@@ -20,7 +20,7 @@ local Lugate = {
   ERR_SERVER_ERROR = -32000, -- Error code for "Server error" error
   ERR_INVALID_PROXY_CALL = -32098, -- Error code for "Invalid proxy call" error
   ERR_EMPTY_REQUEST = -32097, -- Error code for "Empty request" error
-  VERSION = '0.5.3', -- Current version
+  VERSION = '0.5.4', -- Current version
   DBG_MSG = 'DBG %s>>%s<<', -- Template for error log
 }
 
@@ -236,11 +236,14 @@ function Lugate:run()
     for n, response in ipairs(responses) do
       self.responses[self.req_dat.num[n]] = self:clean_response(response)
 
-      -- Process empty or broken responses
+      -- Quick way to find broken responses
+      local first_char = string.sub(self.responses[self.req_dat.num[n]], 1, 1);
+      local last_char = string.sub(self.responses[self.req_dat.num[n]], -1);
       local broken = false
-      if '' == self.responses[self.req_dat.num[n]] then
+      if ('' == self.responses[self.req_dat.num[n]]) or ('{' ~= first_char and '[' ~= first_char) or ('}' ~= last_char and ']' ~= last_char) then
+          -- Process empty or broken responses
           self.responses[self.req_dat.num[n]] = self:clean_response(self:build_json_error(
-              Lugate.ERR_SERVER_ERROR, 'Server error. Empty response.', nil, self.req_dat.ids[n]
+              Lugate.ERR_SERVER_ERROR, 'Server error. Bad response.', nil, self.req_dat.ids[n]
           ))
           broken = true
       end
