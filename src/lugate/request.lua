@@ -94,13 +94,19 @@ function Request:get_key()
   return self.data.params and 'table' == type(self.data.params.cache) and self.data.params.cache.key or false
 end
 
+--- Get request cache tags
+-- @return[type=table]
+function Request:get_tags()
+  return self.data.params and 'table' == type(self.data.params.cache) and 'table' == type(self.data.params.cache.tags) and self.data.params.cache.tags or false
+end
+
 --- Check if request is cachable
 -- @return[type=boolean]
 function Request:is_cachable()
   return self:get_ttl() and self:get_key() and true or false
 end
 
---- Get which uri is passing for request data
+--- Get uri passing for request data
 -- @return[type=string] Request uri
 -- @return[type=string] Error
 function Request:get_uri()

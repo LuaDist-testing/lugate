@@ -19,8 +19,15 @@ function Redis:new(...)
   local redis = setmetatable({}, self)
   self.__index = self
 
+  -- db number
+  local db = 0
+  if #arg == 3 then
+    db = table.remove(arg, 3)
+  end
+
   redis.lredis = require 'redis'
   redis.client = redis.lredis.connect(unpack(arg))
+  redis.client:select(db)
 
   return redis
 end
@@ -36,6 +43,15 @@ function Redis:set(key, value, ttl)
   assert(type(ttl) == "number", "Parameter 'expire' is required and should be a number!")
   self.client:set(key, value)
   self.client:expire(key, ttl)
+end
+
+--- Add value to the set
+-- @param[type=string] set
+-- @param[type=string] key
+function Redis:sadd(set, key)
+  assert(type(set) == "string", "Parameter 'set' is required and should be a string!")
+  assert(type(key) == "string", "Parameter 'key' is required and should be a string!")
+  self.client:sadd(set, key)
 end
 
 --- Get value from cache
