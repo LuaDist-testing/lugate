@@ -46,7 +46,7 @@ end
 -- @return[type=boolean]
 function Request:is_proxy_call()
   if nil == self.proxy_call then
-    self.proxy_call = self:is_valid() and self.data.params['route'] and self.data.params['params'] and self.data.params['cache'] and true or false
+    self.proxy_call = self:is_valid() and self.data.params['route'] and self.data.params['params'] and self.data.params['cache'] and self.data.params['key'] and true or false
   end
 
   return self.proxy_call
@@ -102,13 +102,14 @@ end
 function Request:get_uri()
   if self:is_proxy_call() then
     for route, uri in pairs(self.routes) do
-      if self:get_route() == string.match(self:get_route(), route) then
+      local uri, matches = string.gsub(self:get_route(), route, uri);
+      if matches >= 1 then
         return uri
       end
     end
   end
 
-  return false
+  return '/'
 end
 
 --- Get request body
