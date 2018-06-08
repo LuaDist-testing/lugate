@@ -22,8 +22,6 @@ function Request:new(data, lugate)
   self.__index = self
   request.lugate = lugate
   request.data = data
-  request.expire = {}
-  request.memory = {}
 
   return request
 end
@@ -32,9 +30,8 @@ end
 -- @return[type=boolean]
 function Request:is_valid()
   if nil == self.valid then
-    self.valid = self.data
-      and self.data['jsonrpc']
-      and self.data['method']
+    self.valid = self.data.jsonrpc
+      and self.data.method
       and true or false
   end
 
@@ -47,8 +44,8 @@ end
 function Request:is_proxy_call()
   if nil == self.proxy_call then
     self.proxy_call = self:is_valid()
-      and self.data['params']['route']
-      and self.data['params']
+      and self.data.params
+      and self.data.params.route
       and true or false
   end
 
@@ -85,16 +82,22 @@ function Request:get_route()
   return self:is_proxy_call() and self.data.params.route or nil
 end
 
---- Get request cache time
+--- Get request cache key
 -- @return[type=string]
-function Request:get_cache()
-  return self:is_proxy_call() and self.data.params.cache or false
+function Request:get_ttl()
+  return self.data.params and 'table' == type(self.data.params.cache) and self.data.params.cache.ttl or false
 end
 
 --- Get request cache key
 -- @return[type=string]
 function Request:get_key()
-  return self:is_proxy_call() and self.data.params.key or false
+  return self.data.params and 'table' == type(self.data.params.cache) and self.data.params.cache.key or false
+end
+
+--- Check if request is cachable
+-- @return[type=boolean]
+function Request:is_cachable()
+  return self:get_ttl() and self:get_key() and true or false
 end
 
 --- Get which uri is passing for request data
@@ -127,7 +130,7 @@ end
 --- Get request body
 -- @return[type=string] Json array
 function Request:get_body()
-  return self.lugate.encode(self:get_data())
+  return self.lugate.json.encode(self:get_data())
 end
 
 --- Build a request in format acceptable by nginx
