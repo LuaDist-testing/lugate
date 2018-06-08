@@ -1,16 +1,16 @@
 -- This file was automatically generated for the LuaDist project.
 
 package = "lugate"
-version = "0.6.0-1"
+version = "0.6.1-1"
 -- LuaDist source
 source = {
-  tag = "0.6.0-1",
+  tag = "0.6.1-1",
   url = "git://github.com/LuaDist-testing/lugate.git"
 }
 -- Original source
 -- source = {
 --   url = "git://github.com/zinovyev/lugate",
---   tag = "0.6.0",
+--   tag = "0.6.1",
 -- }
 description = {
   summary = "A library for building JSON-RPC 2.0 Gateway API just inside of your NGINX configuration file",

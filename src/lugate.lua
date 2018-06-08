@@ -23,7 +23,7 @@ local Lugate = {
   ERR_SERVER_ERROR = -32000, -- Error code for "Server error" error
   ERR_INVALID_PROXY_CALL = -32098, -- Error code for "Invalid proxy call" error
   ERR_EMPTY_REQUEST = -32097, -- Error code for "Empty request" error
-  VERSION = '0.6.0', -- Current version
+  VERSION = '0.6.1', -- Current version
   DBG_MSG = 'DBG %s>>%s<<', -- Template for error log
   REQ_PREF = 'REQ', -- Request prefix (used in log message)
   RESP_PREF = 'RESP', -- Response prefix (used in log message)
@@ -114,8 +114,8 @@ function Lugate:init(config)
 end
 
 --- Format error message
--- @param[type=string] Message
--- @param[type=string] Comment
+-- @param[type=string] message Log text
+-- @param[type=string] comment Log note
 -- @return[type=string]
 function Lugate:write_log(message, comment)
   if self.debug then
@@ -177,10 +177,14 @@ function Lugate:get_data()
 end
 
 --- Check if request is a batch
--- @param[type=table] data Decoded request body
 -- @return[type=boolean]
-function Lugate:is_batch(data)
-  return data and data[1] and ('table' == type(data[1])) and true or false
+function Lugate:is_batch()
+  if not self.batch then
+    local data = self:get_data()
+    self.batch =  data and data[1] and ('table' == type(data[1])) and true or false
+  end
+
+  return self.batch
 end
 
 --- Get request collection
@@ -189,7 +193,7 @@ function Lugate:get_requests()
   if not self.requests then
     self.requests = {}
     local data = self:get_data()
-    if self:is_batch(data) then
+    if self:is_batch() then
       for _, rdata in ipairs(data) do
         table.insert(self.requests, Request:new(rdata, self))
       end
@@ -234,6 +238,7 @@ end
 --- Attach request to the pipeline
 -- @param[type=number] i Requets key
 -- @param[type=table] request Request object
+-- @param[type=table] ngx_requests Table of nginx requests
 -- @return[type=boolean]
 function Lugate:attach_request(i, request, ngx_requests)
   self:write_log(request:get_body(), Lugate.REQ_PREF)
@@ -318,13 +323,19 @@ function Lugate:clean_response(response)
   return response_body:match'^()%s*$' and '' or response_body:match'^%s*(.*%S)'
 end
 
+--- Get responses as a string
+-- @return[type=string]
+function Lugate:get_result()
+  if false == self:is_batch() then
+    return self.responses[1]
+  end
+
+  return '[' .. table.concat(self.responses, ",") .. ']'
+end
+
 --- Print all responses and exit
 function Lugate:print_responses()
-  if 1 == #self.responses then
-    ngx.say(self.responses[1])
-  else
-    ngx.print('[' .. table.concat(self.responses, ",") .. ']')
-  end
+  ngx.say(self:get_result())
 
   ngx.exit(ngx.HTTP_OK)
 end
