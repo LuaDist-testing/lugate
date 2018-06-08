@@ -1,0 +1,37 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# Path to your guest additions iso
+guest_iso = "/usr/lib/virtualbox/additions/VBoxGuestAdditions.iso"
+
+# Vagrant configuration
+Vagrant.configure(2) do |config|
+  # The box to use with
+  config.vm.box = "ubuntu/trusty64"
+
+  # Virtualbox configuration
+  config.vm.provider "virtualbox" do |vm|
+    vm.name = "lugate.loc"
+  end
+
+  # Share nginx configuration folder
+  config.vm.synced_folder "nginx/", "/usr/local/nginx"
+
+  # Upload and run the guest additions iso
+  config.vm.provision "file", source: guest_iso, destination: "/tmp/VBoxGuestAdditions.iso", run: "once"
+  config.vm.provision "shell", run: "once", inline: <<-SHELL
+    sudo apt-get install linux-headers-$(uname -r)
+    sudo mkdir /media/VBoxGuestAdditions
+    sudo mount -o loop,ro /tmp/VBoxGuestAdditions.iso /media/VBoxGuestAdditions
+    sudo sh /media/VBoxGuestAdditions/VBoxLinuxAdditions.run
+    sudo umount /media/VBoxGuestAdditions
+    sudo rmdir /media/VBoxGuestAdditions
+SHELL
+
+  # Install Nginx and Lua
+  config.vm.provision "shell", run: "once", path: "provision.sh"
+
+#   Upload nginx config
+#   config.vm.provision "file", source: "nginx.conf", destination: "/usr/local/nginx/nginx.conf", run: "always"
+#
+end
