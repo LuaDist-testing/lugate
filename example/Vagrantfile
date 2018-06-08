@@ -21,6 +21,9 @@ Vagrant.configure(2) do |config|
   config.vm.synced_folder "nginx/", "/usr/local/nginx"
 
   # Upload and run the guest additions iso
+  config.vm.provision "shell", run: "once", inline: <<-SHELL
+    sudo cp -r /usr/local/nginx /tmp/nginx.bkp
+SHELL
   config.vm.provision "file", source: guest_iso, destination: "/tmp/VBoxGuestAdditions.iso", run: "once"
   config.vm.provision "shell", run: "once", inline: <<-SHELL
     sudo apt-get install linux-headers-$(uname -r)
@@ -33,6 +36,19 @@ SHELL
 
   # Install Nginx and Lua
   config.vm.provision "shell", run: "once", path: "provision.sh"
+
+  # Apply nginx config
+  config.vm.provision "shell", run: "once", inline: <<-SHELL
+    sudo mv /usr/local/nginx /tmp/nginx.old
+    sudo cp -r /tmp/nginx.bkp /usr/local/nginx
+    #sudo mkdir /usr/local/nginx/logs && touch /usr/local/nginx/logs/error.log && sudo chown -R www /usr/local/nginx/logs
+    echo "192.168.50.47 gateway.lugate.loc service01.lugate.loc service02.lugate.loc service03.lugate.loc" >> /etc/hosts
+SHELL
+
+  # Run nginx
+  config.vm.provision "shell", run: "always", inline: <<-SHELL
+    sudo nginx
+SHELL
 
 #   Upload nginx config
 #   config.vm.provision "file", source: "nginx.conf", destination: "/usr/local/nginx/nginx.conf", run: "always"
