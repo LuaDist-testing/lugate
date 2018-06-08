@@ -16,6 +16,8 @@ local Request = require "lugate.request"
 --- The lua gateway class definition
 local Lugate = {}
 
+Lugate.HTTP_POST = 8
+
 --- Create new Lugate instance
 -- @param[type=table] config Table of configuration options: body for raw request body and routes for routing map config
 -- @return[type=Lugate] The new instance of Lugate
@@ -38,7 +40,7 @@ end
 -- @return[type=table]
 function Lugate:get_data()
   if not self.data then
-    self.data = json.decode(self.body)
+    self.data = self.body and json.decode(self.body) or {}
   end
 
   return self.data

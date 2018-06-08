@@ -121,7 +121,7 @@ end
 -- @param[type=table] data Decoded requets body
 -- @return table
 function Request:get_ngx_request()
-  return { self:get_uri(), { method = 'POST', body = self:get_body() } }
+  return { self:get_uri(), { method = 8, body = self:get_body() } }
 end
 
 return Request
