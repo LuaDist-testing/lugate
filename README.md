@@ -3,6 +3,7 @@ Lugate is a library for building JSON-RPC 2.0 Gateway API just inside of your NG
 
 [![Build Status](https://travis-ci.org/zinovyev/lugate.svg?branch=master)](https://travis-ci.org/zinovyev/lugate)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/zinovyev/lugate/master/LICENSE)
+[![GitHub version](https://badge.fury.io/gh/zinovyev%2Flugate.svg)](https://badge.fury.io/gh/zinovyev%2Flugate)
 
 ## About
 Lugate is a binding over OpenResty's [ngx\_http\_lua\_module](https://github.com/openresty/lua-nginx-module) module.
@@ -25,12 +26,15 @@ luarocks install lugate
               local Lugate = require "lugate"
 
               -- Get new lugate instance
-              local lugate = Lugate:init({
-                routes = {
-                  ['v1%.([^%.]+).*'] = '/v1.%1', -- v1.math.subtract -> /v1.math
-                  ['v2%.([^%.]+).*'] = '/v2.%1', -- v2.math.addition -> /v2.math
-                }
-              })
+                  local lugate = Lugate:init({
+                    json = require "rapidjson",
+                    ngx = ngx,
+                    cache = {'redis', '127.0.0.1', 6379},
+                    routes = {
+                      ['v1%.([^%.]+).*'] = '/v1', -- v1.math.subtract -> /v1.math
+                      ['v2%.([^%.]+).*'] = '/v2', -- v2.math.addition -> /v2.math
+                    }
+                  })
 
               -- Send multi requst and get multi response
               lugate:run()
